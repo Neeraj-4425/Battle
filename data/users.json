@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "name": "Admin",
+    "email": "admin@battlearena.com",
+    "password": "admin123"
+  },
+  {
+    "id": 2,
+    "name": "Neerja Patel",
+    "email": "neerajpatel2968@gmail.com",
+    "password": "neeraj123"
+  }
+]

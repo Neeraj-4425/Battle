@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Sports Tournament Management</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background-color: #0f0f1a; color: #ffffff; }
+
+header {
+  background-color: #1a1a2e; padding: 20px 50px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 2px solid #e94560;
+}
+header h1 { color: #e94560; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
+nav ul { list-style: none; display: flex; gap: 20px; }
+nav ul li a { color: #fff; text-decoration: none; font-size: 16px; transition: 0.3s; cursor: pointer; }
+nav ul li a:hover { color: #e94560; }
+
+.hero {
+  text-align: center; padding: 100px 20px;
+  background: linear-gradient(rgba(15,15,26,0.8), rgba(15,15,26,0.8)),
+    url('https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')
+    no-repeat center center/cover;
+}
+.hero h2 { font-size: 48px; margin-bottom: 20px; color: #0f3460; text-shadow: 2px 2px 4px #e94560; }
+.hero p { font-size: 18px; margin-bottom: 30px; color: #ccc; }
+
+.btn {
+  background-color: #e94560; color: #fff; padding: 12px 30px;
+  text-decoration: none; font-size: 18px; border-radius: 5px;
+  font-weight: bold; transition: 0.3s; border: none; cursor: pointer;
+}
+.btn:hover { background-color: #0f3460; box-shadow: 0 0 10px #e94560; }
+.btn-sm { font-size: 14px; padding: 8px 18px; }
+
+.tournaments { padding: 60px 50px; text-align: center; }
+.tournaments h3 { font-size: 32px; margin-bottom: 40px; color: #e94560; }
+
+.card-container { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+.card {
+  background-color: #1a1a2e; padding: 30px; border-radius: 10px; width: 300px;
+  border: 1px solid #333; transition: 0.3s;
+}
+.card:hover { transform: translateY(-10px); border-color: #e94560; box-shadow: 0 10px 20px rgba(233,69,96,0.2); }
+.card h4 { font-size: 22px; margin-bottom: 15px; color: #fff; }
+.card p { font-size: 14px; color: #aaa; margin-bottom: 20px; line-height: 1.6; }
+.prize { color: #4cd137; font-weight: bold; margin-bottom: 15px; font-size: 18px; }
+
+/* Leaderboard */
+.leaderboard { padding: 60px 50px; text-align: center; }
+.leaderboard h3 { font-size: 32px; margin-bottom: 30px; color: #e94560; }
+table { width: 100%; max-width: 700px; margin: 0 auto; border-collapse: collapse; }
+th, td { padding: 14px 20px; text-align: center; border-bottom: 1px solid #333; }
+th { background-color: #e94560; color: #fff; font-size: 15px; }
+tr:hover td { background-color: #1a1a2e; }
+td { color: #ccc; font-size: 14px; }
+
+/* Modal Overlay */
+.modal-overlay {
+  display: none; position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 999;
+  justify-content: center; align-items: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: #1a1a2e; border: 1px solid #e94560; border-radius: 12px;
+  padding: 40px; width: 400px; max-width: 90%; position: relative;
+}
+.modal h3 { color: #e94560; margin-bottom: 20px; font-size: 22px; text-align: center; }
+.modal input {
+  width: 100%; padding: 10px 14px; margin-bottom: 14px; border-radius: 6px;
+  border: 1px solid #333; background: #0f0f1a; color: #fff; font-size: 14px;
+}
+.modal input:focus { outline: none; border-color: #e94560; }
+.modal-close {
+  position: absolute; top: 14px; right: 18px; font-size: 22px;
+  cursor: pointer; color: #aaa;
+}
+.modal-close:hover { color: #e94560; }
+.msg { font-size: 14px; text-align: center; margin-top: 10px; padding: 8px; border-radius: 5px; }
+.msg.success { background: #1e3a1e; color: #4cd137; }
+.msg.error   { background: #3a1e1e; color: #e94560; }
+
+/* Auth tabs */
+.tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+.tab-btn {
+  background: none; border: 1px solid #333; color: #aaa;
+  padding: 8px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: 0.3s;
+}
+.tab-btn.active { border-color: #e94560; color: #e94560; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+footer { background-color: #1a1a2e; text-align: center; padding: 20px; margin-top: 50px; border-top: 1px solid #333; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>BattleArena</h1>
+  <nav>
+    <ul>
+      <li><a href="#hero">Home</a></li>
+      <li><a href="#tournaments">Tournaments</a></li>
+      <li><a href="#leaderboard">Leaderboard</a></li>
+      <li><a onclick="openAuthModal()">Login / Register</a></li>
+    </ul>
+  </nav>
+</header>
+
+<!-- Hero -->
+<section class="hero" id="hero">
+  <h2>Dominate the Battleground</h2>
+  <p>रजिस्टर करें, अपनी स्क्वाड बनाएं और इंडिया के सबसे बड़े ई-स्पोर्ट्स टूर्नामेंट्स जीतें।</p>
+  <a href="#tournaments" class="btn">View Upcoming Matches</a>
+</section>
+
+<!-- Tournaments -->
+<section id="tournaments" class="tournaments">
+  <h3>Upcoming Tournaments</h3>
+  <div class="card-container" id="tournamentCards">
+    <p style="color:#aaa;">Loading tournaments...</p>
+  </div>
+</section>
+
+<!-- Leaderboard -->
+<section id="leaderboard" class="leaderboard">
+  <h3>Leaderboard</h3>
+  <table id="leaderboardTable">
+    <thead>
+      <tr><th>Rank</th><th>Team</th><th>Game</th><th>Wins</th><th>Points</th></tr>
+    </thead>
+    <tbody><tr><td colspan="5" style="color:#aaa;">Loading...</td></tr></tbody>
+  </table>
+</section>
+
+<footer>
+  <p>&copy; 2026 BattleArena - BCA Final Year Minor Project. All Rights Reserved.</p>
+</footer>
+
+<!-- Register for Tournament Modal -->
+<div class="modal-overlay" id="registerModal">
+  <div class="modal">
+    <span class="modal-close" onclick="closeModal('registerModal')">&times;</span>
+    <h3>Tournament Registration</h3>
+    <input type="text"  id="reg_name"       placeholder="Your Full Name" />
+    <input type="email" id="reg_email"      placeholder="Your Email" />
+    <input type="text"  id="reg_team"       placeholder="Team Name" />
+    <input type="hidden" id="reg_tournamentId" />
+    <button class="btn" style="width:100%" onclick="submitRegistration()">Register Now</button>
+    <div id="reg_msg" class="msg" style="display:none"></div>
+  </div>
+</div>
+
+<!-- Auth Modal (Login / Signup) -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <span class="modal-close" onclick="closeModal('authModal')">&times;</span>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('loginTab', this)">Login</button>
+      <button class="tab-btn"        onclick="switchTab('signupTab', this)">Sign Up</button>
+    </div>
+
+    <!-- Login -->
+    <div id="loginTab" class="tab-content active">
+      <input type="email"    id="login_email"    placeholder="Email" />
+      <input type="password" id="login_password" placeholder="Password" />
+      <button class="btn" style="width:100%" onclick="submitLogin()">Login</button>
+      <div id="login_msg" class="msg" style="display:none"></div>
+    </div>
+
+    <!-- Sign Up -->
+    <div id="signupTab" class="tab-content">
+      <input type="text"     id="signup_name"     placeholder="Full Name" />
+      <input type="email"    id="signup_email"    placeholder="Email" />
+      <input type="password" id="signup_password" placeholder="Password" />
+      <button class="btn" style="width:100%" onclick="submitSignup()">Create Account</button>
+      <div id="signup_msg" class="msg" style="display:none"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─────────────────────────── JavaScript ─────────────────────────── -->
+<script>
+
+// ── Load tournaments on page load ─────────
+async function loadTournaments() {
+  try {
+    const res  = await fetch('/api/tournaments');
+    const json = await res.json();
+    const container = document.getElementById('tournamentCards');
+    container.innerHTML = '';
+
+    json.data.forEach(t => {
+      container.innerHTML += `
+        <div class="card">
+          <h4>${t.name}</h4>
+          <p>Date: ${t.date}<br>Format: ${t.format}<br>Entry: ${t.entry}</p>
+          <div class="prize">Prize Pool: ${t.prize}</div>
+          <button class="btn" onclick="openRegisterModal(${t.id})">Register Now</button>
+        </div>`;
+    });
+  } catch (e) {
+    document.getElementById('tournamentCards').innerHTML = '<p style="color:#e94560">Failed to load tournaments.</p>';
+  }
+}
+
+// ── Load leaderboard ──────────────────────
+async function loadLeaderboard() {
+  try {
+    const res  = await fetch('/api/leaderboard');
+    const json = await res.json();
+    const tbody = document.querySelector('#leaderboardTable tbody');
+    tbody.innerHTML = '';
+
+    json.data.forEach(row => {
+      tbody.innerHTML += `
+        <tr>
+          <td>#${row.rank}</td>
+          <td>${row.team}</td>
+          <td>${row.game}</td>
+          <td>${row.wins}</td>
+          <td>${row.points}</td>
+        </tr>`;
+    });
+  } catch (e) {
+    document.querySelector('#leaderboardTable tbody').innerHTML =
+      '<tr><td colspan="5" style="color:#e94560">Failed to load leaderboard.</td></tr>';
+  }
+}
+
+// ── Registration modal ────────────────────
+function openRegisterModal(tournamentId) {
+  document.getElementById('reg_tournamentId').value = tournamentId;
+  document.getElementById('reg_name').value  = '';
+  document.getElementById('reg_email').value = '';
+  document.getElementById('reg_team').value  = '';
+  showMsg('reg_msg', '', '');
+  openModal('registerModal');
+}
+
+async function submitRegistration() {
+  const body = {
+    name:         document.getElementById('reg_name').value.trim(),
+    email:        document.getElementById('reg_email').value.trim(),
+    teamName:     document.getElementById('reg_team').value.trim(),
+    tournamentId: document.getElementById('reg_tournamentId').value,
+  };
+
+  if (!body.name || !body.email || !body.teamName) {
+    return showMsg('reg_msg', 'Please fill all fields.', 'error');
+  }
+
+  try {
+    const res  = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const json = await res.json();
+    showMsg('reg_msg', json.message, json.success ? 'success' : 'error');
+  } catch (e) {
+    showMsg('reg_msg', 'Server error. Try again.', 'error');
+  }
+}
+
+// ── Auth modal ────────────────────────────
+function openAuthModal() { openModal('authModal'); }
+
+async function submitLogin() {
+  const email    = document.getElementById('login_email').value.trim();
+  const password = document.getElementById('login_password').value;
+
+  if (!email || !password) return showMsg('login_msg', 'Please fill all fields.', 'error');
+
+  try {
+    const res  = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const json = await res.json();
+    showMsg('login_msg', json.message, json.success ? 'success' : 'error');
+    if (json.success) setTimeout(() => closeModal('authModal'), 1200);
+  } catch (e) {
+    showMsg('login_msg', 'Server error. Try again.', 'error');
+  }
+}
+
+async function submitSignup() {
+  const name     = document.getElementById('signup_name').value.trim();
+  const email    = document.getElementById('signup_email').value.trim();
+  const password = document.getElementById('signup_password').value;
+
+  if (!name || !email || !password) return showMsg('signup_msg', 'Please fill all fields.', 'error');
+
+  try {
+    const res  = await fetch('/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    });
+    const json = await res.json();
+    showMsg('signup_msg', json.message, json.success ? 'success' : 'error');
+  } catch (e) {
+    showMsg('signup_msg', 'Server error. Try again.', 'error');
+  }
+}
+
+// ── Tab switcher ──────────────────────────
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── Helpers ───────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent  = text;
+  el.className    = 'msg ' + type;
+  el.style.display = text ? 'block' : 'none';
+}
+
+// ── Init ──────────────────────────────────
+loadTournaments();
+loadLeaderboard();
+
+</script>
+</body>
+</html>
